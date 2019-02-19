@@ -1,0 +1,45 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/elixir:1.8.1
+        environment:
+          DATABASE_URL: postgresql://postgres@localhost
+          MIX_ENV: test
+      - image: circleci/postgres:11.2-alpine
+        environment:
+          POSTGRES_USER: postgres
+    steps:
+      - checkout
+
+      # Save elixir version details
+      - run: echo "${ELIXIR_VERSION}" > ELIXIR_VERSION.lock
+      - run: echo "${OTP_VERSION}" > OTP_VERSION.lock
+
+      # Hex and rebar
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+
+      # Restore dependencies cache
+      - restore_cache:
+          key: red_pill-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+
+      # Get dependencies
+      - run: mix deps.get
+      - run: mix deps.compile
+
+      # Store dependencies
+      - save_cache:
+          key: red_pill-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+          paths:
+            - _build
+            - deps
+
+      # Compile application
+      - run: mix compile
+
+      # Check format
+      - run: mix format --check-formatted
+
+      # Run test
+      - run: mix test
