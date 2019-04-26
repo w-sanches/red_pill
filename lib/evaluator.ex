@@ -62,6 +62,9 @@ defmodule RedPill.Evaluator do
       params
       |> Enum.map(fn param ->
         case param do
+          param when is_list(param) ->
+            param
+
           {:.., _, _} = param ->
             param
 
