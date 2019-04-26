@@ -89,5 +89,23 @@ defmodule RedPill.EvaluatorTest do
 
       assert Evaluator.evaluate(code) == evaluated_code
     end
+
+    test "correctly handles multilined functions" do
+      code = """
+      [1, 2, 3]
+      |> Enum.map(fn val ->
+        val * 2
+      end)
+      """
+
+      evaluated_code = [
+        {"[1, 2, 3]", [1, 2, 3]},
+        {"|> Enum.map(fn val ->", [2, 4, 6]},
+        {"val * 2", [2, 4, 6]},
+        {"end)", [2, 4, 6]}
+      ]
+
+      assert Evaluator.evaluate(code) == evaluated_code
+    end
   end
 end
