@@ -23,8 +23,7 @@ jobs:
       # Restore dependencies cache
       - restore_cache:
           key: red_pill-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
-
-      # Get dependencies
+# Get dependencies
       - run: mix deps.get
       - run: mix deps.compile
 
@@ -40,6 +39,9 @@ jobs:
 
       # Check format
       - run: mix format --check-formatted
+
+      # Credo
+      - run: mix credo --strict
 
       # Run test
       - run: mix test
